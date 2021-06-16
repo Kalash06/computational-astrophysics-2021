@@ -21,6 +21,7 @@ plt.xlabel('Time',size=15)
 plt.tight_layout()
 #plt.show()
 
+#plotting frequency for zero crossing
 for i in range(len(data)):
     zero_crossings = np.where(np.diff(np.sign(data)))[0] #gives index of element before zero crossing
 index = zero_crossings + 1
@@ -33,31 +34,34 @@ for i in range(len(index)):
 index1 = index1.astype(int)
 
 plt.figure(figsize=(10,6))
-plt.scatter(time[index], freq[index], s=4)
+plt.scatter(time[index], freq[index], s=8)
 plt.grid()
 plt.ylabel('Frequency',size=15)
 plt.xlabel('Time',size=15)
 plt.tight_layout()
 
+#plotting frequency for t<tc and f<50hz in log scale
 plt.figure(figsize=(10,6))
-plt.scatter(time[index1], freq[index1], s=4)
+plt.scatter(np.log(-time[index1]), np.log(freq[index1]), s=8)
 plt.grid()
 plt.ylabel('Frequency',size=15)
 plt.xlabel('Time',size=15)
 plt.tight_layout()
 plt.show()
 
-def f(t, m):
-    tc = 0
-    return ((((8*np.pi)**(8/3))*((m*const.G)**(5/3))*(-t))/(5*(const.c)**5))**(8/3)
+#finding chirp mass m and best fit curve
+def logf(t,m):
+    return (-3/8)*((8/3)*np.log(8*np.pi) - np.log(5) + (5/3)*(np.log((m*const.G.value)/(const.c.value**3))) + np.log(-t))
 
-p_opt, p_cov = cf(f, time[index1], freq[index1])
-print(p_opt)
+p_opt, p_cov = cf(logf, time[index1], np.log(freq[index1]))
+print(p_opt/const.M_sun.value) #chirp mass in solar mass terms
 
-plt.scatter(time[index1], freq[index1], s=4, label='Dataset')
-plt.plot(time[index1],f(time[index1],p_opt),'r',label='Best Fit')
+plt.figure(figsize=(10,6))
+plt.scatter(np.log(-time[index1]), np.log(freq[index1]), s=4, label='Dataset')
+plt.plot(np.log(-time[index1]),logf(time[index1],p_opt),'r',label='Best Fit')
 plt.xlabel("Time", size=15)
 plt.ylabel("Frequency", size=15)
 plt.title('Best Fit Curve')
+plt.grid()
 plt.legend()
 plt.show()
